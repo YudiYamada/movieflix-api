@@ -1,5 +1,6 @@
 import express from "express";
 import { PrismaClient } from "./generated/prisma";
+import { log } from "console";
 
 const port = 3000;
 const app = express();
@@ -98,6 +99,29 @@ app.delete("/movies/:id", async (req, res) => {
   }
 
   res.status(200).send();
+});
+
+app.get("/movies/:genrerName", async (req, res) => {
+  try {
+    const moviesFilteredByGenrerName = await prisma.movie.findMany({
+      include: {
+        genres: true,
+        languages: true,
+      },
+      where: {
+        genres: {
+          name: {
+            equals: req.params.genrerName,
+            mode: "insensitive",
+          },
+        },
+      },
+    });
+
+    res.status(200).send(moviesFilteredByGenrerName);
+  } catch (error) {
+    return res.status(500).send({ message: "Falha ao atualizar um filme", error });
+  }
 });
 
 app.listen(port, () => {
